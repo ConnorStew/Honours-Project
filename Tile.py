@@ -1,6 +1,6 @@
 class Tile:
 
-    def __init__(self, x: int, y: int, width: int, height: int):
+    def __init__(self, x: int, y: int, width: int, height: int, state_index: int):
         self.x = x
         self.y = y
         self.world_x = x * width
@@ -11,6 +11,7 @@ class Tile:
         self.colour = (0, 0, 0)
         self.thickness = 1
         self.game_object = None
+        self.state_index = state_index
 
     def fill(self) -> None:
         self.__filled = True
