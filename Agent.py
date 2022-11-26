@@ -84,13 +84,19 @@ class Agent:
         # move food to a random location after its been picked up
         if self.tiles[next_state].game_object == GameObject.FOOD:
             self.tiles[next_state].game_object = None
-            self.tiles[rnd.randint(0, self.tiles.__len__() - 1)].game_object = GameObject.FOOD
+            self.get_random_non_filled_tile().game_object = GameObject.FOOD
             self.window.tiles = self.tiles
             self.init_rewards_table()
 
         # move agent back to start after finding food
         # if self.tiles[self.state].game_object == GameObject.FOOD:
         #     self.state = Agent.STARTING_STATE
+
+    def get_random_non_filled_tile(self) -> Tile:
+        while True:
+            tile = self.tiles[rnd.randint(0, self.tiles.__len__() - 1)]
+            if not tile.is_filled():
+                return tile
 
     def take_action(self, state, action: int) -> int:
         x_change = 0

@@ -1,4 +1,5 @@
 import time
+import math
 from typing import Tuple
 
 from Action import Action
@@ -9,10 +10,26 @@ import pygame
 import os
 
 
+def truncate(number, decimals=1):
+    """
+    Returns a value truncated to a specific number of decimal places.
+    """
+    if not isinstance(decimals, int):
+        raise TypeError("decimal places must be an integer.")
+    elif decimals < 0:
+        raise ValueError("decimal places has to be 0 or more.")
+    elif decimals == 0:
+        return math.trunc(number)
+
+    factor = 10.0 ** decimals
+    return math.trunc(number * factor) / factor
+
+
 class Window:
     def __init__(self, tile_size: Tuple[int, int], tile_amount: Tuple[int, int]):
         self.tile_size = tile_size
         self.tile_amount = tile_amount
+        self.tile_offset = 10
         self.tiles = []
 
         state_index_count = 0
@@ -35,7 +52,7 @@ class Window:
 
         Window.init_pygame()
 
-        self.font_size = 12
+        self.font_size = 8
         default_font = pygame.font.get_default_font()
         self.font_renderer = pygame.font.Font(default_font, self.font_size)
         self.surface = pygame.display.set_mode((tile_size[0] * tile_amount[0] + 1, tile_size[1] * tile_amount[1] + 1))
@@ -71,16 +88,40 @@ class Window:
 
         for tile in self.tiles:
             if tile.game_object is GameObject.FOOD:
-                pygame.draw.rect(self.surface, (0, 255, 0),(tile.world_x, tile.world_y, self.tile_size[0], self.tile_size[1]), tile.thickness)
+                pygame.draw.rect(self.surface, (0, 255, 0), (tile.world_x, tile.world_y, self.tile_size[0], self.tile_size[1]), tile.thickness)
             else:
                 pygame.draw.rect(self.surface, tile.colour, (tile.world_x, tile.world_y, self.tile_size[0], self.tile_size[1]), tile.thickness)
-            label = self.font_renderer.render(f"{tile.state_index}", True, (0, 255, 0))
-            self.surface.blit(label, (tile.world_x + tile.width / 2, tile.world_y + tile.height / 2))
+
+            #label = self.font_renderer.render(f"{tile.state_index}", True, (0, 255, 0))
+            #self.surface.blit(label, (tile.world_x + tile.width / 2, tile.world_y + tile.height / 2))
+
+            middle_of_tile_x = tile.world_x + tile.width / 2
+            middle_of_tile_y = tile.world_y + tile.height / 2
+
+            if not tile.is_filled():
+                up_value = self.get_action_value(tile, Action.UP)
+                up_label = self.font_renderer.render(f"{up_value}", True, (0, 255, 0))
+                self.surface.blit(up_label, (middle_of_tile_x, middle_of_tile_y - self.tile_offset))
+
+                down_value = self.get_action_value(tile, Action.DOWN)
+                down_label = self.font_renderer.render(f"{down_value}", True, (0, 255, 0))
+                self.surface.blit(down_label, (middle_of_tile_x, middle_of_tile_y + self.tile_offset))
+
+                left_value = self.get_action_value(tile, Action.LEFT)
+                left_label = self.font_renderer.render(f"{left_value}", True, (0, 255, 0))
+                self.surface.blit(left_label, (middle_of_tile_x - self.tile_offset, middle_of_tile_y))
+
+                right_value = self.get_action_value(tile, Action.RIGHT)
+                right_label = self.font_renderer.render(f"{right_value}", True, (0, 255, 0))
+                self.surface.blit(right_label, (middle_of_tile_x + self.tile_offset, middle_of_tile_y))
 
         agent_tile = self.tiles[self.agent.state]
         self.surface.blit(self.agent_image, (agent_tile.world_x, agent_tile.world_y))
 
         pygame.display.update()
+
+    def get_action_value(self, tile, action) -> float:
+        return truncate(self.agent.q_table[tile.state_index][action.value], 1)
 
     def fill_tiles(self) -> None:
         x_amount = self.tile_amount[0]
