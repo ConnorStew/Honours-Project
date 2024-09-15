@@ -40,7 +40,7 @@ class Window:
 
         self.fill_tiles()
 
-        self.agent_image = pygame.image.load(f'{os.getcwd()}/agent.png')
+        self.agent_image = pygame.image.load(f'{os.getcwd()}/resources/agent.png')
         self.agent_image_offset = 5
         self.agent_image = pygame.transform.scale(self.agent_image, (tile_size[0] - self.agent_image_offset, tile_size[1] - self.agent_image_offset))
 
